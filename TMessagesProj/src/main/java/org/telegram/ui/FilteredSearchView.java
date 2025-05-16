@@ -610,30 +610,12 @@ public class FilteredSearchView extends FrameLayout implements NotificationCente
                     MessagesStorage.getInstance(currentAccount).localSearch(0, query, resultArray, resultArrayNames, encUsers, null, includeFolder ? 1 : 0);
                 }
 
-                final TLRPC.TL_messages_searchGlobal req = new TLRPC.TL_messages_searchGlobal();
-                req.limit = 20;
-                req.q = query;
-                req.filter = currentSearchFilter == null ? new TLRPC.TL_inputMessagesFilterEmpty() : currentSearchFilter.filter;
-                if (minDate > 0) {
-                    req.min_date = (int) (minDate / 1000);
-                }
-                if (maxDate > 0) {
-                    req.max_date = (int) (maxDate / 1000);
-                }
-                if (filterAndQueryIsSame && query.equals(lastMessagesSearchString) && !messages.isEmpty()) {
-                    MessageObject lastMessage = messages.get(messages.size() - 1);
-                    req.offset_id = lastMessage.getId();
-                    req.offset_rate = nextSearchRate;
-                    long id = MessageObject.getPeerId(lastMessage.messageOwner.peer_id);
-                    req.offset_peer = MessagesController.getInstance(currentAccount).getInputPeer(id);
-                } else {
-                    req.offset_rate = 0;
-                    req.offset_id = 0;
-                    req.offset_peer = new TLRPC.TL_inputPeerEmpty();
-                }
-                req.flags |= 1;
-                req.folder_id = includeFolder ? 1 : 0;
-                request = req;
+                // ВІДКЛЮЧЕНО: Глобальний пошук вимкнено
+                // final TLRPC.TL_messages_searchGlobal req = new TLRPC.TL_messages_searchGlobal();
+                // ... решта коду, що формує і відправляє req ...
+                // request = req;
+                // Просто не відправляємо глобальний пошук
+                return;
             }
 
             lastMessagesSearchString = query;

@@ -257,12 +257,8 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
         this.itemAnimator = itemAnimator;
         this.dialogsActivity = dialogsActivity;
         this.resourcesProvider = resourcesProvider;
-        searchAdapterHelper = new SearchAdapterHelper(false) {
-            @Override
-            protected boolean filter(TLObject obj) {
-                return DialogsSearchAdapter.this.filter(obj);
-            }
-        };
+        searchAdapterHelper = new SearchAdapterHelper(false);
+        searchAdapterHelper.setAllowGlobalResults(false);
         searchAdapterHelper.setDelegate(new SearchAdapterHelper.SearchAdapterHelperDelegate() {
             @Override
             public void onDataSetChanged(int searchId) {
