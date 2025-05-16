@@ -374,6 +374,11 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
     }
 
     private void search(View view, int position, String query, boolean reset) {
+        // Skip searching in channels view
+        if (view == channelsSearchContainer) {
+            return;
+        }
+        
         long forumDialogId = dialogsSearchAdapter.delegate != null ? dialogsSearchAdapter.delegate.getSearchForumDialogId() : 0;
         long dialogId = position == 0 ? 0 : forumDialogId;
         long minDate = 0;
@@ -395,11 +400,7 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
             }
         }
 
-        if (view == channelsSearchContainer) {
-            MessagesController.getInstance(currentAccount).getChannelRecommendations(0);
-            channelsSearchAdapter.search(query);
-            channelsEmptyView.setKeyboardHeight(keyboardSize, false);
-        } else if (view == searchContainer) {
+        if (view == searchContainer) {
             if (dialogId == 0 && minDate == 0 && maxDate == 0 || forumDialogId != 0) {
                 lastSearchScrolledToTop = false;
                 dialogsSearchAdapter.searchDialogs(query, includeFolder ? 1 : 0);
@@ -876,6 +877,12 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
         if (position < 0) {
             return;
         }
+        // Skip the channels tab position
+        for (int i = 0; i < viewPagerAdapter.items.size(); i++) {
+            if (i == position && viewPagerAdapter.items.get(i).type == ViewPagerAdapter.CHANNELS_TYPE) {
+                return; // Don't allow setting position to channels tab
+            }
+        }
         super.setPosition(position);
         viewsByType.clear();
         if (tabsView != null) {
@@ -1035,7 +1042,6 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
         public void updateItems() {
             items.clear();
             items.add(new Item(DIALOGS_TYPE));
-            items.add(new Item(CHANNELS_TYPE));
             if (!showOnlyDialogsAdapter) {
                 Item item = new Item(FILTER_TYPE);
                 item.filterIndex = 0;
@@ -1060,10 +1066,14 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
 
         @Override
         public String getItemTitle(int position) {
+            if (position >= items.size()) {
+                return "";
+            }
             if (items.get(position).type == DIALOGS_TYPE) {
                 return LocaleController.getString(R.string.SearchAllChatsShort);
             } else if (items.get(position).type == CHANNELS_TYPE) {
-                return LocaleController.getString(R.string.ChannelsTab);
+                // Should never be visible, but return empty string to avoid errors
+                return "";
             } else if (items.get(position).type == DOWNLOADS_TYPE) {
                 return LocaleController.getString(R.string.DownloadsTabs);
             } else {
@@ -1081,7 +1091,8 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
             if (viewType == 1) {
                 return searchContainer;
             } else if (viewType == 3) {
-                return channelsSearchContainer;
+                // Return null for channels tab
+                return null;
             } else if (viewType == 2) {
                 downloadsContainer = new SearchDownloadsContainer(parent, currentAccount);
                 downloadsContainer.recyclerListView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -1110,11 +1121,15 @@ public class SearchViewPager extends ViewPagerFixed implements FilteredSearchVie
 
         @Override
         public int getItemViewType(int position) {
+            if (position >= items.size()) {
+                return -1;
+            }
             if (items.get(position).type == DIALOGS_TYPE) {
                 return 1;
             }
+            // Never return the channels type
             if (items.get(position).type == CHANNELS_TYPE) {
-                return 3;
+                return -1;
             }
             if (items.get(position).type == DOWNLOADS_TYPE) {
                 return 2;
